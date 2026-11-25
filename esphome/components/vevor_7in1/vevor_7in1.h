@@ -28,6 +28,7 @@
 #include "esphome/core/log.h"
 #include "esphome/core/application.h"
 #include "esphome/core/preferences.h"
+#include "esphome/core/version.h"
 #include "esphome/components/cc1101/cc1101.h"
 #include "esphome/components/remote_base/remote_base.h"
 #include "esphome/components/remote_receiver/remote_receiver.h"
@@ -93,7 +94,9 @@ class Vevor7in1 : public Component, public remote_base::RemoteReceiverDumperBase
       this->mark_failed();
       return;
     }
+#if ESPHOME_VERSION_CODE < VERSION_CODE(2026, 10, 0)
     this->receiver_->register_dumper(this);
+#endif
     this->bits_.resize(vevor::MAX_BITS);
     // Reception watchdog: the policy lives here (see watch_radio_()), never in the YAML.
     // The 20 s slot is the station's transmission period.
@@ -158,7 +161,7 @@ class Vevor7in1 : public Component, public remote_base::RemoteReceiverDumperBase
   // header. The real decoding-noise counter — distinct from "no capture", which means nothing
   // reaches the chip.
   uint32_t get_rejected() const { return this->rejected_; }
-  // Frames emitted after a bounded REPAIR (see vevor_protocol.h). Separate counter: a repaired
+  // Frames emitted after a bounded repair (see vevor_protocol.h). Separate counter: a repaired
   // frame is not worth a directly decoded one, and this number must be visible.
   uint32_t get_repairs() const { return this->repairs_; }
   uint32_t get_repairs_rejetees() const { return this->repairs_rejetees_; }

@@ -65,7 +65,7 @@ async def to_code(config):
 
     # ESPHome 2026.10.0+ sizes receiver dumper slots from codegen via remote_base.add_dumper.
     if hasattr(remote_base, "add_dumper"):
-        await remote_base.add_dumper(receiver, var)
+        remote_base.add_dumper(receiver, var)
 
     if CONF_RADIO_ID in config:
         radio = await cg.get_variable(config[CONF_RADIO_ID])

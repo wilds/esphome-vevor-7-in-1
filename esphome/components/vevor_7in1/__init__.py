@@ -41,22 +41,19 @@ Vevor7in1 = vevor_7in1_ns.class_(
     remote_base.RemoteReceiverDumperBase,
 )
 
-CONFIG_SCHEMA = (
-    cv.Schema(
-        {
-            cv.GenerateID(): cv.declare_id(Vevor7in1),
-            cv.Required(CONF_RECEIVER_ID): cv.use_id(
-                remote_receiver.RemoteReceiverComponent
-            ),
-            # The radio, so the watchdog can re-arm it (cc1101.reset): the policy lives in the
-            # component, the YAML only points at the radio.
-            cv.Optional(CONF_RADIO_ID): cv.use_id(cc1101.CC1101Component),
-            cv.Optional(CONF_STATION_ID, default=0): cv.int_range(min=0, max=0xFFFF),
-            cv.Optional(CONF_ON_FRAME): automation.validate_automation(single=True),
-        }
-    )
-    .extend(cv.COMPONENT_SCHEMA)
-)
+CONFIG_SCHEMA = cv.Schema(
+    {
+        cv.GenerateID(): cv.declare_id(Vevor7in1),
+        cv.Required(CONF_RECEIVER_ID): cv.use_id(
+            remote_receiver.RemoteReceiverComponent
+        ),
+        # The radio, so the watchdog can re-arm it (cc1101.reset): the policy lives in the
+        # component, the YAML only points at the radio.
+        cv.Optional(CONF_RADIO_ID): cv.use_id(cc1101.CC1101Component),
+        cv.Optional(CONF_STATION_ID, default=0): cv.int_range(min=0, max=0xFFFF),
+        cv.Optional(CONF_ON_FRAME): automation.validate_automation(single=True),
+    }
+).extend(cv.COMPONENT_SCHEMA)
 
 
 async def to_code(config):
@@ -65,6 +62,10 @@ async def to_code(config):
 
     receiver = await cg.get_variable(config[CONF_RECEIVER_ID])
     cg.add(var.set_receiver(receiver))
+
+    # ESPHome 2026.10.0+ sizes receiver dumper slots from codegen via remote_base.add_dumper.
+    if hasattr(remote_base, "add_dumper"):
+        await remote_base.add_dumper(receiver, var)
 
     if CONF_RADIO_ID in config:
         radio = await cg.get_variable(config[CONF_RADIO_ID])
